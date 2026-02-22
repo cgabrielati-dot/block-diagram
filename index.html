@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Options Monitor — System Block Diagram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700;900&family=Barlow+Condensed:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #0a0d12;
+    --surface: #0f1420;
+    --surface2: #141925;
+    --border: #1e2a3a;
+    --border-bright: #2a3f5f;
+
+    --green: #00e5a0;
+    --green-dim: rgba(0,229,160,0.12);
+    --green-glow: 0 0 18px rgba(0,229,160,0.25);
+
+    --blue: #4dabf7;
+    --blue-dim: rgba(77,171,247,0.12);
+    --blue-glow: 0 0 18px rgba(77,171,247,0.25);
+
+    --amber: #ffd43b;
+    --amber-dim: rgba(255,212,59,0.10);
+    --amber-glow: 0 0 18px rgba(255,212,59,0.22);
+
+    --red: #ff6b6b;
+    --red-dim: rgba(255,107,107,0.12);
+    --red-glow: 0 0 18px rgba(255,107,107,0.22);
+
+    --purple: #cc5de8;
+    --purple-dim: rgba(204,93,232,0.12);
+
+    --text: #c9d1d9;
+    --text-dim: #5a6a80;
+    --text-bright: #e8edf5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    padding: 32px 24px 64px;
+    min-width: 1180px;
+  }
+
+  /* ---- HEADER ---- */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 34px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--text-bright);
+    line-height: 1;
+  }
+  .header h1 span { color: var(--green); }
+  .header p {
+    margin-top: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .header-rule {
+    width: 240px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    margin: 14px auto 0;
+  }
+
+  /* ---- LEGEND ---- */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ---- MAIN LAYOUT ---- */
+  .diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ---- ROW LAYER ---- */
+  .layer {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .layer-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 0 8px;
+  }
+
+  /* ---- ARROW CONNECTORS ---- */
+  .arrow-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 38px;
+    gap: 16px;
+    position: relative;
+  }
+  .arrow-down {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .arrow-line {
+    width: 1px;
+    flex: 1;
+    background: var(--border-bright);
+  }
+  .arrow-head {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid var(--border-bright);
+  }
+  .arrow-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  /* ---- BLOCK BASE ---- */
+  .block {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .block:hover {
+    border-color: var(--border-bright);
+  }
+  .block-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .block-icon {
+    font-size: 14px;
+    line-height: 1;
+  }
+  .block-body {
+    color: var(--text-dim);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .block-body b {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9.5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.3px;
+    border: 1px solid;
+  }
+
+  /* ---- COLOR THEMES ---- */
+  .theme-green { background: var(--green-dim); border-color: rgba(0,229,160,0.3); box-shadow: var(--green-glow); }
+  .theme-green .block-title { color: var(--green); }
+  .theme-green .tag { border-color: rgba(0,229,160,0.35); color: var(--green); background: rgba(0,229,160,0.07); }
+
+  .theme-blue { background: var(--blue-dim); border-color: rgba(77,171,247,0.3); box-shadow: var(--blue-glow); }
+  .theme-blue .block-title { color: var(--blue); }
+  .theme-blue .tag { border-color: rgba(77,171,247,0.35); color: var(--blue); background: rgba(77,171,247,0.07); }
+
+  .theme-amber { background: var(--amber-dim); border-color: rgba(255,212,59,0.3); box-shadow: var(--amber-glow); }
+  .theme-amber .block-title { color: var(--amber); }
+  .theme-amber .tag { border-color: rgba(255,212,59,0.35); color: var(--amber); background: rgba(255,212,59,0.07); }
+
+  .theme-red { background: var(--red-dim); border-color: rgba(255,107,107,0.3); box-shadow: var(--red-glow); }
+  .theme-red .block-title { color: var(--red); }
+  .theme-red .tag { border-color: rgba(255,107,107,0.35); color: var(--red); background: rgba(255,107,107,0.07); }
+
+  .theme-purple { background: var(--purple-dim); border-color: rgba(204,93,232,0.3); }
+  .theme-purple .block-title { color: var(--purple); }
+  .theme-purple .tag { border-color: rgba(204,93,232,0.35); color: var(--purple); background: rgba(204,93,232,0.07); }
+
+  .theme-neutral { background: var(--surface); border-color: var(--border-bright); }
+  .theme-neutral .block-title { color: var(--text-bright); }
+  .theme-neutral .tag { border-color: var(--border-bright); color: var(--text-dim); background: transparent; }
+
+  /* ---- SIZES ---- */
+  .block-sm { min-width: 160px; max-width: 180px; }
+  .block-md { min-width: 200px; max-width: 230px; }
+  .block-lg { min-width: 260px; max-width: 290px; }
+  .block-xl { min-width: 340px; max-width: 380px; }
+  .block-full { width: 100%; max-width: 760px; }
+
+  /* ---- SECTION DIVIDERS ---- */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 28px 0 20px;
+  }
+  .section-divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-divider-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  /* ---- MONITOR COLUMNS ---- */
+  .monitors-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .monitor-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: 1;
+    max-width: 520px;
+  }
+  .monitor-header {
+    border-radius: 8px 8px 0 0;
+    padding: 10px 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+    border: 1px solid;
+    border-bottom: none;
+  }
+  .monitor-header.covered-puts {
+    background: rgba(0,229,160,0.1);
+    border-color: rgba(0,229,160,0.4);
+    color: var(--green);
+  }
+  .monitor-header.vert-spread {
+    background: rgba(77,171,247,0.1);
+    border-color: rgba(77,171,247,0.4);
+    color: var(--blue);
+  }
+  .monitor-body {
+    border: 1px solid;
+    border-radius: 0 0 8px 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .monitor-body.covered-puts { border-color: rgba(0,229,160,0.25); background: rgba(0,229,160,0.03); }
+  .monitor-body.vert-spread { border-color: rgba(77,171,247,0.25); background: rgba(77,171,247,0.03); }
+
+  /* ---- FILTER BLOCK ---- */
+  .filter-block {
+    border-radius: 6px;
+    border: 1px dashed;
+    padding: 9px 12px;
+    margin: 8px 0;
+  }
+  .filter-block.green { border-color: rgba(0,229,160,0.35); background: rgba(0,229,160,0.05); }
+  .filter-block.blue { border-color: rgba(77,171,247,0.35); background: rgba(77,171,247,0.05); }
+  .filter-block.amber { border-color: rgba(255,212,59,0.35); background: rgba(255,212,59,0.05); }
+  .filter-block.red { border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.05); }
+  .filter-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .filter-title.green { color: var(--green); }
+  .filter-title.blue { color: var(--blue); }
+  .filter-title.amber { color: var(--amber); }
+  .filter-title.red { color: var(--red); }
+  .filter-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .filter-pill {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .filter-pill.green { border-color: rgba(0,229,160,0.4); color: rgba(0,229,160,0.85); background: rgba(0,229,160,0.08); }
+  .filter-pill.blue { border-color: rgba(77,171,247,0.4); color: rgba(77,171,247,0.85); background: rgba(77,171,247,0.08); }
+  .filter-pill.amber { border-color: rgba(255,212,59,0.4); color: rgba(255,212,59,0.85); background: rgba(255,212,59,0.08); }
+  .filter-pill.red { border-color: rgba(255,107,107,0.4); color: rgba(255,107,107,0.85); background: rgba(255,107,107,0.08); }
+
+  /* mini arrow between blocks inside a column */
+  .mini-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    flex-direction: column;
+  }
+  .mini-arrow-line { width: 1px; height: 12px; background: var(--border-bright); }
+  .mini-arrow-head {
+    width: 0; height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid var(--border-bright);
+  }
+
+  /* ---- SCORE BOX ---- */
+  .score-box {
+    border-radius: 6px;
+    padding: 10px 12px;
+    border: 1px solid;
+    margin: 8px 0;
+  }
+  .score-box.green { border-color: rgba(0,229,160,0.4); background: rgba(0,229,160,0.06); }
+  .score-box.blue { border-color: rgba(77,171,247,0.4); background: rgba(77,171,247,0.06); }
+  .score-box-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .score-box-title.green { color: var(--green); }
+  .score-box-title.blue { color: var(--blue); }
+  .score-dims {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 10px;
+  }
+  .score-dim {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .score-dim::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--border-bright);
+    flex-shrink: 0;
+  }
+
+  /* ---- TIER BADGES ---- */
+  .tier-row {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+    justify-content: center;
+  }
+  .tier-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    padding: 5px 14px;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+  .tier-badge.watch { border-color: rgba(255,212,59,0.5); color: var(--amber); background: rgba(255,212,59,0.08); }
+  .tier-badge.setup { border-color: rgba(77,171,247,0.5); color: var(--blue); background: rgba(77,171,247,0.08); }
+  .tier-badge.action { border-color: rgba(0,229,160,0.5); color: var(--green); background: rgba(0,229,160,0.08); }
+
+  /* ---- ALERT TERMINAL ---- */
+  .alert-terminal {
+    max-width: 760px;
+    margin: 0 auto;
+    border-radius: 10px;
+    border: 1px solid rgba(0,229,160,0.35);
+    background: var(--surface);
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,229,160,0.12);
+  }
+  .terminal-bar {
+    background: rgba(0,229,160,0.12);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(0,229,160,0.2);
+  }
+  .terminal-dots { display: flex; gap: 5px; }
+  .td { width: 10px; height: 10px; border-radius: 50%; }
+  .td.r { background: #ff5f57; }
+  .td.y { background: #febc2e; }
+  .td.g { background: #28c840; }
+  .terminal-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    flex: 1;
+    text-align: center;
+  }
+  .terminal-body {
+    padding: 16px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .terminal-col { flex: 1; min-width: 200px; }
+  .term-section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+  }
+  .term-line {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text);
+    line-height: 1.9;
+  }
+  .term-line .k { color: var(--text-dim); }
+  .term-line .v-green { color: var(--green); }
+  .term-line .v-blue { color: var(--blue); }
+  .term-line .v-amber { color: var(--amber); }
+
+  /* ---- SHARED INFRA COLS ---- */
+  .infra-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    max-width: 760px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+  .infra-block {
+    flex: 1;
+    min-width: 140px;
+    max-width: 180px;
+    border-radius: 8px;
+    border: 1px solid var(--border-bright);
+    background: var(--surface2);
+    padding: 12px;
+    text-align: center;
+  }
+  .infra-icon { font-size: 20px; margin-bottom: 6px; }
+  .infra-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+  }
+  .infra-body { font-size: 10px; color: var(--text-dim); line-height: 1.5; }
+
+  /* ---- BIG FLOW ARROW ---- */
+  .big-arrow-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 44px;
+    gap: 16px;
+  }
+  .big-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 32px;
+  }
+  .big-arrow-shaft {
+    width: 2px;
+    height: 24px;
+    background: linear-gradient(180deg, var(--border-bright), var(--green));
+  }
+  .big-arrow-tip {
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid var(--green);
+  }
+  .big-arrow-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    white-space: nowrap;
+    align-self: center;
+  }
+
+  /* ---- SPLIT ARROW (1->2) ---- */
+  .split-arrow-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 12px 0;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .split-shaft {
+    width: 2px;
+    height: 20px;
+    background: var(--border-bright);
+  }
+  .split-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+    max-width: 540px;
+    position: relative;
+  }
+  .split-h-line {
+    height: 1px;
+    background: var(--border-bright);
+    flex: 1;
+    margin-top: 0;
+    align-self: flex-start;
+    margin-top: 0;
+  }
+  .split-center-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border-bright);
+    flex-shrink: 0;
+    margin-top: -3px;
+  }
+  .split-legs {
+    display: flex;
+    width: 100%;
+    max-width: 540px;
+    justify-content: space-between;
+  }
+  .split-leg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .split-leg-line {
+    width: 1px;
+    height: 18px;
+    background: var(--border-bright);
+  }
+  .split-leg-head {
+    width: 0; height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid var(--border-bright);
+  }
+  .split-leg-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* converge arrow (2->1) */
+  .converge-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .converge-legs {
+    display: flex;
+    width: 100%;
+    max-width: 540px;
+    justify-content: space-between;
+  }
+  .converge-leg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .converge-leg-line {
+    width: 1px;
+    height: 18px;
+    background: var(--border-bright);
+  }
+  .converge-h-row {
+    display: flex;
+    width: 100%;
+    max-width: 540px;
+    align-items: flex-end;
+  }
+  .converge-h-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border-bright);
+    align-self: flex-start;
+    margin-top: 0;
+  }
+  .converge-shaft {
+    width: 2px;
+    height: 20px;
+    background: var(--border-bright);
+  }
+  .converge-head {
+    width: 0; height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 9px solid var(--border-bright);
+  }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Options <span>Monitor</span> — System Architecture</h1>
+  <p>Data Flow · Filters · Scoring · Alerts</p>
+  <div class="header-rule"></div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Data / API Source</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Filter Gate</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Processing / Scoring</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Output / Alert</div>
+  <div class="legend-item" style="border:1px dashed rgba(255,255,255,0.15); padding:2px 8px; border-radius:4px;">- - - Filter boundary</div>
+</div>
+
+<div class="diagram">
+
+  <!-- ==================== LAYER 1: DATA SOURCES ==================== -->
+  <div class="layer-label">LAYER 1 — EXTERNAL DATA SOURCES</div>
+  <div class="row">
+
+    <div class="block block-md theme-green">
+      <div class="block-title"><span class="block-icon">📈</span> Polygon.io</div>
+      <div class="block-body">
+        <b>Primary market data API</b><br>
+        Daily OHLCV bars, options chain snapshots, reference tickers, earnings dates
+        <div class="tag-list">
+          <span class="tag">/aggs</span>
+          <span class="tag">/snapshot/options</span>
+          <span class="tag">/reference/tickers</span>
+          <span class="tag">/reference/earnings</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="block block-md theme-green">
+      <div class="block-title"><span class="block-icon">🏛️</span> SEC EDGAR</div>
+      <div class="block-body">
+        <b>Fundamental &amp; filing data</b><br>
+        Company facts, financial statements, 10-K / 10-Q filings, insider transactions
+        <div class="tag-list">
+          <span class="tag">/companyfacts</span>
+          <span class="tag">/submissions</span>
+          <span class="tag">/companyconcept</span>
+          <span class="tag">XBRL financials</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="block block-sm theme-neutral">
+      <div class="block-title"><span class="block-icon">🔑</span> Rate Limiter</div>
+      <div class="block-body">
+        RPM throttle<br>Retry / backoff<br>Per-thread sessions
+        <div class="tag-list">
+          <span class="tag">RPM env var</span>
+          <span class="tag">jitter</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="block block-sm theme-neutral">
+      <div class="block-title"><span class="block-icon">🗃️</span> Earnings Cache</div>
+      <div class="block-body">
+        Process-wide TTL cache<br>Shared across threads<br>Reduces API calls
+        <div class="tag-list">
+          <span class="tag">TTL 1hr</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Arrow down -->
+  <div class="big-arrow-row">
+    <div class="big-arrow-label">raw market data</div>
+    <div class="big-arrow"><div class="big-arrow-shaft"></div><div class="big-arrow-tip"></div></div>
+  </div>
+
+  <!-- ==================== LAYER 2: UNIVERSE ==================== -->
+  <div class="layer-label">LAYER 2 — UNIVERSE CONSTRUCTION (universe.py)</div>
+  <div class="row">
+
+    <div class="block block-xl theme-green">
+      <div class="block-title"><span class="block-icon">🌐</span> Bakeoff Engine</div>
+      <div class="block-body">
+        Evaluates a large candidate pool of US-listed equities on a weekly cadence (Mon / Thu). Scores each ticker for suitability as a put-selling underlying. Results stored in persistent JSON DB.
+        <div class="tag-list">
+          <span class="tag">pool ~2500</span>
+          <span class="tag">Mon+Thu rebuild</span>
+          <span class="tag">universe_db.json</span>
+          <span class="tag">universe_top800.json</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px;">
+
+      <div class="filter-block amber">
+        <div class="filter-title amber">🏦 Underlying Quality Gates</div>
+        <div class="filter-items">
+          <span class="filter-pill amber">min market cap</span>
+          <span class="filter-pill amber">min avg $ vol</span>
+          <span class="filter-pill amber">min price</span>
+        </div>
+      </div>
+
+      <div class="filter-block amber">
+        <div class="filter-title amber">📊 Trend / Momentum Filters</div>
+        <div class="filter-items">
+          <span class="filter-pill amber">price &gt; SMA50</span>
+          <span class="filter-pill amber">SMA50 &gt; SMA200</span>
+          <span class="filter-pill amber">RSI floor / ceiling</span>
+        </div>
+      </div>
+
+      <div class="filter-block amber">
+        <div class="filter-title amber">🔗 Option Quality Gates</div>
+        <div class="filter-items">
+          <span class="filter-pill amber">min OI</span>
+          <span class="filter-pill amber">max spread%</span>
+          <span class="filter-pill amber">DTE target range</span>
+          <span class="filter-pill amber">delta target range</span>
+          <span class="filter-pill amber">min ann yield</span>
+        </div>
+      </div>
+
+      <div class="filter-block amber">
+        <div class="filter-title amber">📉 Chronic Loser Removal</div>
+        <div class="filter-items">
+          <span class="filter-pill amber">min pass rate</span>
+          <span class="filter-pill amber">max no-put rate</span>
+          <span class="filter-pill amber">min eval count</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Arrow: bakeoff -> scan universe -->
+  <div class="big-arrow-row">
+    <div class="big-arrow-label">top 150 scan universe</div>
+    <div class="big-arrow"><div class="big-arrow-shaft"></div><div class="big-arrow-tip"></div></div>
+  </div>
+
+  <!-- ==================== SHARED INFRA ==================== -->
+  <div class="layer-label">SHARED INFRASTRUCTURE</div>
+  <div class="infra-row">
+    <div class="infra-block">
+      <div class="infra-icon">🔄</div>
+      <div class="infra-title">Run Window</div>
+      <div class="infra-body">Checks hour-of-day gate (ET). Sleeps outside window. FORCE_RUN bypass.</div>
+    </div>
+    <div class="infra-block">
+      <div class="infra-icon">⚡</div>
+      <div class="infra-title">Thread Pool</div>
+      <div class="infra-body">4 concurrent workers. Each has own PolygonClient + RPM limiter.</div>
+    </div>
+    <div class="infra-block">
+      <div class="infra-icon">📝</div>
+      <div class="infra-title">Scan Log</div>
+      <div class="infra-body">JSONL append per run. Powers analytics.py for post-run review.</div>
+    </div>
+    <div class="infra-block">
+      <div class="infra-icon">🕐</div>
+      <div class="infra-title">Alert Cooldown</div>
+      <div class="infra-body">State.json tracks last alert per ticker. 4hr cooldown prevents spam.</div>
+    </div>
+  </div>
+
+  <!-- Split into two monitor columns -->
+  <div class="split-arrow-container">
+    <div class="split-shaft"></div>
+    <div style="width:100%;max-width:540px;height:1px;background:var(--border-bright);"></div>
+    <div class="split-legs">
+      <div class="split-leg">
+        <div class="split-leg-line"></div>
+        <div class="split-leg-head"></div>
+        <div class="split-leg-label">COVERED PUTS</div>
+      </div>
+      <div class="split-leg">
+        <div class="split-leg-line"></div>
+        <div class="split-leg-head"></div>
+        <div class="split-leg-label">VERTICAL SPREADS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- section label -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label">LAYER 3 — PER-TICKER SCAN (runner.py → monitor modules)</div>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <!-- ==================== MONITOR COLUMNS ==================== -->
+  <div class="monitors-row">
+
+    <!-- ===== COVERED PUTS ===== -->
+    <div class="monitor-col">
+      <div class="monitor-header covered-puts">🟢 Covered Puts Monitor</div>
+      <div class="monitor-body covered-puts">
+
+        <!-- underlying fetch -->
+        <div class="filter-block green">
+          <div class="filter-title green">📥 Underlying Data Fetch</div>
+          <div class="filter-items">
+            <span class="filter-pill green">45d daily OHLCV bars</span>
+            <span class="filter-pill green">last close = spot price</span>
+            <span class="filter-pill green">20d avg $ volume</span>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- underlying pre-filter -->
+        <div class="filter-block amber">
+          <div class="filter-title amber">🚪 Pre-Scan Gates</div>
+          <div class="filter-items">
+            <span class="filter-pill amber">symbol class check</span>
+            <span class="filter-pill amber">min price ≥ $10</span>
+            <span class="filter-pill amber">avg $vol ≥ $25M</span>
+            <span class="filter-pill amber">≥10 daily bars</span>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- options chain fetch -->
+        <div class="filter-block green">
+          <div class="filter-title green">📥 Options Chain Fetch</div>
+          <div class="filter-items">
+            <span class="filter-pill green">options snapshot (paged)</span>
+            <span class="filter-pill green">up to 2 pages × 250 contracts</span>
+            <span class="filter-pill green">earnings date lookup</span>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- contract filters -->
+        <div class="filter-block amber">
+          <div class="filter-title amber">🔎 Contract Filters (covered_puts.py)</div>
+          <div class="filter-items">
+            <span class="filter-pill amber">PUT contracts only</span>
+            <span class="filter-pill amber">DTE 10–75</span>
+            <span class="filter-pill amber">delta −0.35 → −0.15</span>
+            <span class="filter-pill amber">min OI ≥ 10</span>
+            <span class="filter-pill amber">max spread% ≤ 10%</span>
+            <span class="filter-pill amber">min credit ≥ $0.20</span>
+            <span class="filter-pill amber">min yield/cash ≥ 0.4%</span>
+            <span class="filter-pill amber">earnings buffer 10d</span>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- scoring -->
+        <div class="score-box green">
+          <div class="score-box-title green">⚙️ Scoring Engine (score_cash_secured_put)</div>
+          <div class="score-dims">
+            <div class="score-dim">Ann Yield component</div>
+            <div class="score-dim">Buffer % component</div>
+            <div class="score-dim">Delta penalty</div>
+            <div class="score-dim">OI / day vol depth</div>
+            <div class="score-dim">Spread penalty</div>
+            <div class="score-dim">Earnings unknown ×0.9</div>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- tier classification -->
+        <div style="background:rgba(0,229,160,0.04); border:1px solid rgba(0,229,160,0.2); border-radius:6px; padding:10px 12px; margin:4px 0;">
+          <div class="filter-title green" style="margin-bottom:6px;">🏷️ Tier Classification</div>
+          <div class="tier-row">
+            <div class="tier-badge watch">WATCH ≥5.3</div>
+            <div class="tier-badge setup">SETUP ≥6.6</div>
+            <div class="tier-badge action">ACTION ≥7.6</div>
+          </div>
+          <div style="font-size:9.5px; color:var(--text-dim); text-align:center; margin-top:6px; font-family:'Share Tech Mono',monospace;">
+            Requires live bid/ask for SETUP / ACTION tier
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== VERTICAL SPREADS ===== -->
+    <div class="monitor-col">
+      <div class="monitor-header vert-spread">🔵 Vertical Spread Monitor</div>
+      <div class="monitor-body vert-spread">
+
+        <!-- underlying fetch -->
+        <div class="filter-block blue">
+          <div class="filter-title blue">📥 Underlying Data Fetch</div>
+          <div class="filter-items">
+            <span class="filter-pill blue">45d daily OHLCV bars</span>
+            <span class="filter-pill blue">last close = spot price</span>
+            <span class="filter-pill blue">20d avg $ volume</span>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- underlying pre-filter -->
+        <div class="filter-block amber">
+          <div class="filter-title amber">🚪 Pre-Scan Gates</div>
+          <div class="filter-items">
+            <span class="filter-pill amber">symbol class check</span>
+            <span class="filter-pill amber">min price threshold</span>
+            <span class="filter-pill amber">min avg $ vol</span>
+            <span class="filter-pill amber">≥10 daily bars</span>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- options chain fetch -->
+        <div class="filter-block blue">
+          <div class="filter-title blue">📥 Options Chain Fetch</div>
+          <div class="filter-items">
+            <span class="filter-pill blue">options snapshot (paged)</span>
+            <span class="filter-pill blue">both legs: short + long</span>
+            <span class="filter-pill blue">earnings date lookup</span>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- contract filters -->
+        <div class="filter-block amber">
+          <div class="filter-title amber">🔎 Contract Filters</div>
+          <div class="filter-items">
+            <span class="filter-pill amber">CALL or PUT direction</span>
+            <span class="filter-pill amber">DTE target range</span>
+            <span class="filter-pill amber">short leg delta target</span>
+            <span class="filter-pill amber">width constraints</span>
+            <span class="filter-pill amber">min OI both legs</span>
+            <span class="filter-pill amber">max spread%</span>
+            <span class="filter-pill amber">min net credit</span>
+            <span class="filter-pill amber">earnings buffer</span>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- spread construction -->
+        <div class="score-box blue">
+          <div class="score-box-title blue">🔗 Spread Construction</div>
+          <div class="score-dims">
+            <div class="score-dim">Short leg selection</div>
+            <div class="score-dim">Long leg pairing</div>
+            <div class="score-dim">Net credit calc</div>
+            <div class="score-dim">Max risk calc</div>
+            <div class="score-dim">Breakeven calc</div>
+            <div class="score-dim">Credit/width ratio</div>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- scoring -->
+        <div class="score-box blue">
+          <div class="score-box-title blue">⚙️ Scoring Engine</div>
+          <div class="score-dims">
+            <div class="score-dim">Credit/width ratio</div>
+            <div class="score-dim">Probability of profit</div>
+            <div class="score-dim">IV environment</div>
+            <div class="score-dim">Buffer to short strike</div>
+            <div class="score-dim">Liquidity / OI depth</div>
+            <div class="score-dim">Earnings penalty</div>
+          </div>
+        </div>
+        <div class="mini-arrow"><div class="mini-arrow-line"></div><div class="mini-arrow-head"></div></div>
+
+        <!-- tier -->
+        <div style="background:rgba(77,171,247,0.04); border:1px solid rgba(77,171,247,0.2); border-radius:6px; padding:10px 12px; margin:4px 0;">
+          <div class="filter-title blue" style="margin-bottom:6px;">🏷️ Tier Classification</div>
+          <div class="tier-row">
+            <div class="tier-badge watch">WATCH ≥5.3</div>
+            <div class="tier-badge setup">SETUP ≥6.6</div>
+            <div class="tier-badge action">ACTION ≥7.6</div>
+          </div>
+          <div style="font-size:9.5px; color:var(--text-dim); text-align:center; margin-top:6px; font-family:'Share Tech Mono',monospace;">
+            Requires live bid/ask for SETUP / ACTION tier
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  <!-- end monitors row -->
+
+  <!-- Converge arrows back to center -->
+  <div class="converge-container">
+    <div class="converge-legs">
+      <div class="converge-leg"><div class="converge-leg-line"></div></div>
+      <div class="converge-leg"><div class="converge-leg-line"></div></div>
+    </div>
+    <div style="width:100%;max-width:540px;height:1px;background:var(--border-bright);"></div>
+    <div class="converge-shaft"></div>
+    <div class="converge-head"></div>
+  </div>
+
+  <!-- ==================== LAYER 4: POST-SCAN ==================== -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label">LAYER 4 — ALERT PIPELINE (main.py)</div>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <div class="row">
+    <div class="block block-lg theme-neutral">
+      <div class="block-title"><span class="block-icon">🔀</span> Candidate Aggregator</div>
+      <div class="block-body">
+        Merges results from all 150 tickers scanned in parallel. Deduplicates, sorts by score descending. Applies MIN_ALERT_TIER env gate. Limits to MAX_ALERTS_PER_SCAN (default 5).
+        <div class="tag-list">
+          <span class="tag">sort by score</span>
+          <span class="tag">tier gate</span>
+          <span class="tag">top-N cap</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="block block-md theme-amber">
+      <div class="block-title"><span class="block-icon">⏱️</span> Alert Cooldown</div>
+      <div class="block-body">
+        Per-ticker 4hr cooldown prevents spam. State persisted in state.json. Marks alerted tickers with timestamp.
+        <div class="tag-list">
+          <span class="tag">240min default</span>
+          <span class="tag">state.json</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow to alert terminal -->
+  <div class="big-arrow-row">
+    <div class="big-arrow-label">formatted alert message</div>
+    <div class="big-arrow">
+      <div class="big-arrow-shaft" style="background:linear-gradient(180deg,var(--border-bright),var(--red));"></div>
+      <div class="big-arrow-tip" style="border-top-color:var(--red);"></div>
+    </div>
+  </div>
+
+  <!-- ==================== LAYER 5: OUTPUTS ==================== -->
+  <div class="layer-label">LAYER 5 — OUTPUTS</div>
+
+  <!-- Telegram alert mock -->
+  <div class="alert-terminal">
+    <div class="terminal-bar">
+      <div class="terminal-dots"><div class="td r"></div><div class="td y"></div><div class="td g"></div></div>
+      <div class="terminal-title">telegram_client.py — sendMessage → Telegram Bot API</div>
+    </div>
+    <div class="terminal-body">
+
+      <div class="terminal-col">
+        <div class="term-section-title">Covered Put Alert (example)</div>
+        <div class="term-line"><span class="k">Ticker  </span> <span class="v-green">AAPL ACTION | score 8.42</span></div>
+        <div class="term-line"><span class="k">Contract</span> PUT 2026-04-17 175.00 (DTE 54)</div>
+        <div class="term-line"><span class="k">UL Price</span> <span class="v-green">$191.30</span>  Δ <span class="v-amber">-0.22</span></div>
+        <div class="term-line"><span class="k">OI / Vol</span> 2140 / 380  spr <span class="v-green">3.1%</span></div>
+        <div class="term-line"><span class="k">Credit  </span> <span class="v-green">$1.85</span>  BE $173.15  Buf <span class="v-green">9.5%</span></div>
+        <div class="term-line"><span class="k">Yield   </span> <span class="v-green">1.06%</span> cash / <span class="v-green">7.2%</span> ann</div>
+      </div>
+
+      <div class="terminal-col">
+        <div class="term-section-title">Vertical Spread Alert (example)</div>
+        <div class="term-line"><span class="k">Ticker  </span> <span class="v-blue">NVDA SETUP | score 7.18</span></div>
+        <div class="term-line"><span class="k">Spread  </span> PUT 2026-03-21  120/115 (DTE 27)</div>
+        <div class="term-line"><span class="k">UL Price</span> <span class="v-blue">$136.50</span>  Δ short <span class="v-amber">-0.28</span></div>
+        <div class="term-line"><span class="k">Credit  </span> <span class="v-blue">$1.12</span>  Max risk <span class="v-blue">$3.88</span></div>
+        <div class="term-line"><span class="k">C/W     </span> <span class="v-blue">22.4%</span>  BE $118.88  Buf <span class="v-blue">12.9%</span></div>
+        <div class="term-line"><span class="k">OI legs </span> 1820 / 940  Spread <span class="v-blue">4.2%</span></div>
+      </div>
+
+      <div class="terminal-col">
+        <div class="term-section-title">Also Written To</div>
+        <div class="term-line"><span class="v-amber">scan_log.jsonl</span> — per-run JSONL</div>
+        <div class="term-line"><span class="k">  runs, duration, skips</span></div>
+        <div class="term-line"><span class="k">  alerted tickers, errors</span></div>
+        <div style="margin-top:8px;"></div>
+        <div class="term-line"><span class="v-amber">state.json</span> — persistent state</div>
+        <div class="term-line"><span class="k">  alert timestamps</span></div>
+        <div class="term-line"><span class="k">  run / success history</span></div>
+        <div style="margin-top:8px;"></div>
+        <div class="term-line"><span class="v-amber">analytics.py</span> — post-run report</div>
+        <div class="term-line"><span class="k">  summary stats, top skips</span></div>
+        <div class="term-line"><span class="k">  top alerted tickers</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- heartbeat note -->
+  <div style="text-align:center; margin-top:24px;">
+    <div style="display:inline-flex; align-items:center; gap:10px; padding:8px 20px; border:1px solid var(--border); border-radius:20px; background:var(--surface2);">
+      <span style="font-size:14px;">💓</span>
+      <span style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:1px;">
+        heartbeat.py — periodic liveness ping → Telegram (host status, timestamp)
+      </span>
+    </div>
+  </div>
+
+  <!-- ==================== LAYER 6: OUTCOME TRACKER ==================== -->
+  <div class="section-divider" style="margin-top:36px;">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label">LAYER 6 — OUTCOME TRACKER</div>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <!-- feedback arrow from alerts -->
+  <div class="big-arrow-row">
+    <div class="big-arrow-label">alerted trades logged for tracking</div>
+    <div class="big-arrow">
+      <div class="big-arrow-shaft" style="background:linear-gradient(180deg,var(--border-bright),var(--purple));"></div>
+      <div class="big-arrow-tip" style="border-top-color:var(--purple);"></div>
+    </div>
+  </div>
+
+  <div class="row" style="align-items:stretch;">
+
+    <!-- Trade Log -->
+    <div class="block block-lg theme-purple">
+      <div class="block-title"><span class="block-icon">📋</span> Trade Log</div>
+      <div class="block-body">
+        Records every alerted trade at the moment of alert. Captures entry snapshot for later comparison. Persisted in JSONL for durable history.
+        <div class="tag-list">
+          <span class="tag">entry price</span>
+          <span class="tag">strike / exp</span>
+          <span class="tag">credit received</span>
+          <span class="tag">delta at entry</span>
+          <span class="tag">tier + score</span>
+          <span class="tag">alert_history.jsonl</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Price Poller -->
+    <div class="block block-md theme-purple">
+      <div class="block-title"><span class="block-icon">🔁</span> Price Poller</div>
+      <div class="block-body">
+        Periodically re-fetches current option mid-price for open tracked positions. Computes unrealized P&amp;L vs. entry credit.
+        <div class="tag-list">
+          <span class="tag">Polygon snapshot</span>
+          <span class="tag">mark-to-market</span>
+          <span class="tag">% credit captured</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outcome Classifier -->
+    <div class="block block-md theme-purple">
+      <div class="block-title"><span class="block-icon">🏁</span> Outcome Classifier</div>
+      <div class="block-body">
+        On expiry or close, classifies each trade as win / loss / expired worthless / assigned / closed early.
+        <div class="tag-list">
+          <span class="tag">expired worthless</span>
+          <span class="tag">closed for profit</span>
+          <span class="tag">assigned</span>
+          <span class="tag">stopped out</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- arrow down to performance -->
+  <div class="big-arrow-row" style="height:32px;">
+    <div class="big-arrow">
+      <div class="big-arrow-shaft" style="background:linear-gradient(180deg,var(--purple),rgba(204,93,232,0.4));"></div>
+      <div class="big-arrow-tip" style="border-top-color:rgba(204,93,232,0.6);"></div>
+    </div>
+  </div>
+
+  <!-- Performance Report terminal -->
+  <div class="alert-terminal" style="border-color:rgba(204,93,232,0.35); box-shadow:0 0 30px rgba(204,93,232,0.1);">
+    <div class="terminal-bar" style="background:rgba(204,93,232,0.1); border-bottom-color:rgba(204,93,232,0.2);">
+      <div class="terminal-dots"><div class="td r"></div><div class="td y"></div><div class="td g"></div></div>
+      <div class="terminal-title" style="color:rgba(204,93,232,0.8);">outcome_tracker.py — Performance Report → Telegram + outcome_log.jsonl</div>
+    </div>
+    <div class="terminal-body">
+
+      <div class="terminal-col">
+        <div class="term-section-title" style="border-bottom-color:rgba(204,93,232,0.2);">Trade Performance Summary</div>
+        <div class="term-line"><span class="k">Period    </span> <span style="color:var(--purple);">rolling 30d / 90d / all-time</span></div>
+        <div class="term-line"><span class="k">Trades    </span> <span style="color:var(--purple);">total / open / closed</span></div>
+        <div class="term-line"><span class="k">Win rate  </span> <span style="color:var(--green);">closed winners / closed total</span></div>
+        <div class="term-line"><span class="k">Avg P&amp;L   </span> <span style="color:var(--green);">$ per trade (closed)</span></div>
+        <div class="term-line"><span class="k">Avg %cap  </span> <span style="color:var(--green);">% credit captured at close</span></div>
+        <div class="term-line"><span class="k">Max loss  </span> <span style="color:var(--red);">worst single trade</span></div>
+      </div>
+
+      <div class="terminal-col">
+        <div class="term-section-title" style="border-bottom-color:rgba(204,93,232,0.2);">Breakdown by Tier &amp; Monitor</div>
+        <div class="term-line"><span class="k">ACTION    </span> <span style="color:var(--green);">win% / avg P&amp;L</span></div>
+        <div class="term-line"><span class="k">SETUP     </span> <span style="color:var(--blue);">win% / avg P&amp;L</span></div>
+        <div class="term-line"><span class="k">WATCH     </span> <span style="color:var(--amber);">win% / avg P&amp;L</span></div>
+        <div style="margin-top:8px;"></div>
+        <div class="term-line"><span class="k">Cov Puts  </span> <span style="color:var(--green);">monitor-level stats</span></div>
+        <div class="term-line"><span class="k">Vert Sprd </span> <span style="color:var(--blue);">monitor-level stats</span></div>
+      </div>
+
+      <div class="terminal-col">
+        <div class="term-section-title" style="border-bottom-color:rgba(204,93,232,0.2);">Feedback Loop</div>
+        <div class="term-line"><span style="color:var(--purple);">outcome_log.jsonl</span></div>
+        <div class="term-line"><span class="k">  closed trade records</span></div>
+        <div class="term-line"><span class="k">  entry vs. exit snapshot</span></div>
+        <div style="margin-top:8px;"></div>
+        <div class="term-line"><span style="color:var(--purple);">Scoring calibration</span></div>
+        <div class="term-line"><span class="k">  win rate by score band</span></div>
+        <div class="term-line"><span class="k">  informs future thresholds</span></div>
+        <div style="margin-top:8px;"></div>
+        <div class="term-line"><span style="color:var(--purple);">Telegram digest</span></div>
+        <div class="term-line"><span class="k">  daily / weekly summary</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- heartbeat note -->
+  <div style="text-align:center; margin-top:28px;">
+    <div style="display:inline-flex; align-items:center; gap:10px; padding:8px 20px; border:1px solid var(--border); border-radius:20px; background:var(--surface2);">
+      <span style="font-size:14px;">💓</span>
+      <span style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:1px;">
+        heartbeat.py — periodic liveness ping → Telegram (host status, timestamp)
+      </span>
+    </div>
+  </div>
+
+</div><!-- end diagram -->
+
+</body>
+</html>
